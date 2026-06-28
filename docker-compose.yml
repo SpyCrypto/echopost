@@ -6,10 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile.relay
     ports:
-      - "4000:4000"
+      - "8080:8080"
     environment:
       - NODE_ENV=development
-      - PORT=4000
+      - PORT=8080
       - CORS_ORIGIN=http://localhost:3000
       - AES_KEY=0000000000000000000000000000000000000000000000000000000000000000
       # Add other OAuth credentials as needed:
@@ -40,8 +40,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_RELAY_URL=http://localhost:4000
-      - RELAY_URL=http://relay:4000
+      - NEXT_PUBLIC_RELAY_URL=http://localhost:8080
+      - RELAY_URL=http://relay:8080
     volumes:
       - ./frontend:/app
       - /app/.next
