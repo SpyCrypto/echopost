@@ -1,5 +1,7 @@
 # EchoPost
 
+![EchoPost Logo](./docs/echopost-logo.png)
+
 EchoPost is a privacy-first publishing platform powered by Midnight. Users connect their social and content accounts once, OAuth credentials are encrypted, and a single click publishes to Medium, Devpost, X, LinkedIn, Notion, and other platforms without ever exposing or permanently storing sensitive credentials.
 
 ## Deployment
