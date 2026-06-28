@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  relay:
+    build:
+      context: .
+      dockerfile: Dockerfile.relay
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - CORS_ORIGIN=http://localhost:3000
+      - AES_KEY=0000000000000000000000000000000000000000000000000000000000000000
+      # Add other OAuth credentials as needed:
+      - MEDIUM_API_KEY=${MEDIUM_API_KEY}
+      - MEDIUM_API_SECRET=${MEDIUM_API_SECRET}
+      - X_API_KEY=${X_API_KEY}
+      - X_API_SECRET=${X_API_SECRET}
+      - X_ACCESS_TOKEN=${X_ACCESS_TOKEN}
+      - X_ACCESS_SECRET=${X_ACCESS_SECRET}
+      - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
+      - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
+      - LINKEDIN_ACCESS_TOKEN=${LINKEDIN_ACCESS_TOKEN}
+      - DEVPOST_API_KEY=${DEVPOST_API_KEY}
+      - NOTION_TOKEN=${NOTION_TOKEN}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+    volumes:
+      - ./relay:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - echopost-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_RELAY_URL=http://localhost:4000
+      - RELAY_URL=http://relay:4000
+    volumes:
+      - ./frontend:/app
+      - /app/.next
+      - /app/node_modules
+    depends_on:
+      - relay
+    restart: unless-stopped
+    networks:
+      - echopost-network
+
+networks:
+  echopost-network:
+    driver: bridge
