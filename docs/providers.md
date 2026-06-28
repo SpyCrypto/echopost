@@ -123,7 +123,7 @@ NOTION_DATABASE_ID=your-database-id
 
 ## Roadmap Providers
 
-### Phase 3 (Q3 2024)
+### Phase 3 (01 2027)
 
 #### Hashnode
 
@@ -166,7 +166,7 @@ NOTION_DATABASE_ID=your-database-id
 
 **Documentation**: https://substack.com/api
 
-### Phase 4 (Q4 2024)
+### Phase 4 (12 2027)
 
 #### Discord
 
