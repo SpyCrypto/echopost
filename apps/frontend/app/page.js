@@ -2,49 +2,64 @@
 
 import { useMemo, useState } from 'react';
 
-const channels = [
-  { name: 'Medium', status: 'Connected', reach: '18.4k', accent: '#2f7f6f' },
-  { name: 'LinkedIn', status: 'Connected', reach: '9.8k', accent: '#315f9f' },
-  { name: 'X', status: 'Needs review', reach: '31.6k', accent: '#262b35' },
-  { name: 'Notion', status: 'Draft sync', reach: 'Team', accent: '#8a683d' },
+const initialChannels = [
+  { name: 'Medium', status: 'Ready', reach: '18.4k', accent: '#2f7f6f', selected: true },
+  { name: 'Dev.to', status: 'Ready', reach: '6.2k', accent: '#8b5036', selected: true },
+  { name: 'LinkedIn', status: 'Review', reach: '9.8k', accent: '#315f9f', selected: false },
+  { name: 'X', status: 'Reconnect', reach: '31.6k', accent: '#262b35', selected: false },
+  { name: 'Notion', status: 'Draft sync', reach: 'Team', accent: '#756047', selected: true },
 ];
 
-const posts = [
+const initialPosts = [
   {
+    id: 1,
     title: 'Midnight launch notes',
     channel: 'Medium + LinkedIn',
     state: 'Scheduled',
     time: 'Today, 16:30',
-    score: '86',
+    score: 86,
+    body: 'A polished launch recap with the technical notes, shipped features, and provider rollout details.',
   },
   {
+    id: 2,
     title: 'Privacy-first publishing checklist',
     channel: 'X thread',
     state: 'Draft',
     time: 'Tomorrow, 09:15',
-    score: '72',
+    score: 72,
+    body: 'A compact thread about token handling, review gates, and why credentials stay out of the client.',
   },
   {
+    id: 3,
     title: 'Community build recap',
-    channel: 'Devpost',
+    channel: 'Dev.to',
     state: 'Review',
     time: 'Fri, 11:00',
-    score: '91',
+    score: 91,
+    body: 'A developer-focused recap of the latest integration work and the publishing relay architecture.',
   },
-];
-
-const activity = [
-  'Credential vault rotated for LinkedIn',
-  'Medium import completed with 14 assets',
-  'Draft policy flagged 2 disclosure checks',
-  'Notion workspace sync started',
 ];
 
 const filters = ['Overview', 'Queue', 'Accounts'];
 
 export default function Home() {
   const [activeFilter, setActiveFilter] = useState('Overview');
-  const [selectedPost, setSelectedPost] = useState(posts[0].title);
+  const [selectedPostId, setSelectedPostId] = useState(initialPosts[0].id);
+  const [posts, setPosts] = useState(initialPosts);
+  const [channels, setChannels] = useState(initialChannels);
+  const [draftTitle, setDraftTitle] = useState('Launch week field notes');
+  const [draftBody, setDraftBody] = useState(
+    'Write once, review each channel, and publish after EchoPost checks the credential vault and provider limits.',
+  );
+  const [activity, setActivity] = useState([
+    'Credential vault rotated for LinkedIn',
+    'Medium import completed with 14 assets',
+    'Draft policy flagged 2 disclosure checks',
+    'Notion workspace sync started',
+  ]);
+
+  const selectedPost = posts.find((post) => post.id === selectedPostId) ?? posts[0];
+  const selectedChannels = channels.filter((channel) => channel.selected);
 
   const visiblePosts = useMemo(() => {
     if (activeFilter === 'Accounts') {
@@ -56,7 +71,66 @@ export default function Home() {
     }
 
     return posts;
-  }, [activeFilter]);
+  }, [activeFilter, posts]);
+
+  const metrics = [
+    ['Queued posts', posts.length + 9, '+3 this week'],
+    ['Selected reach', selectedChannels.reduce((total, channel) => total + parseReach(channel.reach), 0).toFixed(1) + 'k', `${selectedChannels.length} channels armed`],
+    ['Privacy checks', 47, '2 need attention'],
+    ['Success rate', '94.6%', 'Last 30 days'],
+  ];
+
+  function addActivity(message) {
+    setActivity((items) => [message, ...items].slice(0, 5));
+  }
+
+  function createDraft() {
+    const title = draftTitle.trim();
+
+    if (!title) {
+      addActivity('Draft needs a title before it can enter the queue');
+      return;
+    }
+
+    const channelLabel = selectedChannels.map((channel) => channel.name).join(' + ') || 'No channel selected';
+    const nextPost = {
+      id: Date.now(),
+      title,
+      channel: channelLabel,
+      state: selectedChannels.length ? 'Review' : 'Draft',
+      time: 'Unscheduled',
+      score: Math.min(94, 68 + title.length + selectedChannels.length * 4),
+      body: draftBody.trim() || 'No draft body yet.',
+    };
+
+    setPosts((items) => [nextPost, ...items]);
+    setSelectedPostId(nextPost.id);
+    addActivity(`Draft created for ${channelLabel}`);
+  }
+
+  function publishSelected() {
+    setPosts((items) =>
+      items.map((post) =>
+        post.id === selectedPost.id ? { ...post, state: 'Publishing', time: 'Now' } : post,
+      ),
+    );
+    addActivity(`${selectedPost.title} moved into publishing`);
+  }
+
+  function markReviewed() {
+    setPosts((items) =>
+      items.map((post) => (post.id === selectedPost.id ? { ...post, state: 'Scheduled' } : post)),
+    );
+    addActivity(`${selectedPost.title} passed review`);
+  }
+
+  function toggleChannel(name) {
+    setChannels((items) =>
+      items.map((channel) =>
+        channel.name === name ? { ...channel, selected: !channel.selected } : channel,
+      ),
+    );
+  }
 
   return (
     <main className="dashboard-shell">
@@ -70,7 +144,7 @@ export default function Home() {
         </div>
 
         <nav className="nav-stack" aria-label="Primary">
-          {['Dashboard', 'Publishing', 'Accounts', 'Vault', 'Analytics'].map((item) => (
+          {['Dashboard', 'Compose', 'Accounts', 'Vault', 'Analytics'].map((item) => (
             <button className={item === 'Dashboard' ? 'nav-item active' : 'nav-item'} key={item}>
               <span aria-hidden="true" />
               {item}
@@ -79,9 +153,9 @@ export default function Home() {
         </nav>
 
         <section className="security-panel">
-          <p className="eyebrow">Midnight Guard</p>
-          <strong>Credentials encrypted</strong>
-          <span>4 accounts protected with scheduled key rotation.</span>
+          <p className="eyebrow">Credential Guard</p>
+          <strong>Vault ready</strong>
+          <span>{channels.filter((channel) => channel.status !== 'Reconnect').length} accounts protected with encrypted publish access.</span>
         </section>
       </aside>
 
@@ -89,18 +163,13 @@ export default function Home() {
         <header className="topbar">
           <div>
             <p className="eyebrow">Publishing dashboard</p>
-            <h2>Plan, review, and publish from one private command center.</h2>
+            <h2>Write once, review every channel, publish when the vault is clear.</h2>
           </div>
-          <button className="primary-action" type="button">New post</button>
+          <button className="primary-action" type="button" onClick={createDraft}>Queue draft</button>
         </header>
 
         <section className="metric-grid" aria-label="Publishing summary">
-          {[
-            ['Queued posts', '12', '+3 this week'],
-            ['Connected reach', '59.8k', 'Across 4 channels'],
-            ['Privacy checks', '47', '2 need attention'],
-            ['Success rate', '94.6%', 'Last 30 days'],
-          ].map(([label, value, note]) => (
+          {metrics.map(([label, value, note]) => (
             <article className="metric-card" key={label}>
               <span>{label}</span>
               <strong>{value}</strong>
@@ -110,6 +179,38 @@ export default function Home() {
         </section>
 
         <div className="content-grid">
+          <section className="panel composer-panel">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Try the workflow</p>
+                <h3>Compose a demo post</h3>
+              </div>
+              <span className="save-state">Local demo</span>
+            </div>
+            <label className="field-label">
+              Title
+              <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} />
+            </label>
+            <label className="field-label">
+              Draft
+              <textarea value={draftBody} onChange={(event) => setDraftBody(event.target.value)} rows={5} />
+            </label>
+            <div className="channel-picker" aria-label="Select publishing channels">
+              {channels.map((channel) => (
+                <button
+                  className={channel.selected ? 'channel-pill selected' : 'channel-pill'}
+                  key={channel.name}
+                  onClick={() => toggleChannel(channel.name)}
+                  style={{ '--accent': channel.accent }}
+                  type="button"
+                >
+                  <span aria-hidden="true" />
+                  {channel.name}
+                </button>
+              ))}
+            </div>
+          </section>
+
           <section className="panel large-panel">
             <div className="panel-heading">
               <div>
@@ -135,9 +236,9 @@ export default function Home() {
             <div className="post-list">
               {visiblePosts.map((post) => (
                 <button
-                  className={selectedPost === post.title ? 'post-row selected' : 'post-row'}
-                  key={post.title}
-                  onClick={() => setSelectedPost(post.title)}
+                  className={selectedPostId === post.id ? 'post-row selected' : 'post-row'}
+                  key={post.id}
+                  onClick={() => setSelectedPostId(post.id)}
                   type="button"
                 >
                   <span className="status-dot" aria-hidden="true" />
@@ -153,20 +254,27 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="panel calendar-panel">
-            <p className="eyebrow">Today</p>
-            <h3>Focus window</h3>
-            <div className="timeline">
-              <span>09:15</span>
+          <section className="panel preview-panel">
+            <p className="eyebrow">Selected post</p>
+            <h3>{selectedPost.title}</h3>
+            <p>{selectedPost.body}</p>
+            <dl className="review-grid">
               <div>
-                <strong>Review thread hook</strong>
-                <small>X draft needs disclosure copy</small>
+                <dt>Channels</dt>
+                <dd>{selectedPost.channel}</dd>
               </div>
-              <span>16:30</span>
               <div>
-                <strong>Ship launch notes</strong>
-                <small>Medium and LinkedIn bundle</small>
+                <dt>Readiness</dt>
+                <dd>{selectedPost.score}/100</dd>
               </div>
+              <div>
+                <dt>Status</dt>
+                <dd>{selectedPost.state}</dd>
+              </div>
+            </dl>
+            <div className="action-row">
+              <button className="primary-action compact" type="button" onClick={publishSelected}>Publish now</button>
+              <button className="text-action" type="button" onClick={markReviewed}>Mark reviewed</button>
             </div>
           </section>
 
@@ -176,7 +284,7 @@ export default function Home() {
                 <p className="eyebrow">Accounts</p>
                 <h3>Connected channels</h3>
               </div>
-              <button className="text-action" type="button">Manage</button>
+              <span className="save-state">{selectedChannels.length} selected</span>
             </div>
             <div className="channel-list">
               {channels.map((channel) => (
@@ -205,4 +313,9 @@ export default function Home() {
       </section>
     </main>
   );
+}
+
+function parseReach(reach) {
+  const value = Number.parseFloat(reach);
+  return Number.isFinite(value) ? value : 0;
 }
