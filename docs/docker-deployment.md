@@ -9,7 +9,7 @@ docker compose up --pull always
 ```
 
 This will:
-- Build the relay service (Node.js backend) on port 4000
+- Build the relay service (Node.js backend) on port 8080
 - Build the frontend service (Next.js) on port 3000
 - Both services connect via the `echopost-network` bridge network
 - Hot reload enabled via volume mounts
@@ -63,10 +63,10 @@ services:
   relay:
     image: ghcr.io/SpyCrypto/echopost-relay:latest
     ports:
-      - "4000:4000"
+      - "8080:8080"
     environment:
       - NODE_ENV=production
-      - PORT=4000
+      - PORT=8080
       - CORS_ORIGIN=https://yourdomain.com
       - AES_KEY=${AES_KEY}  # Set via .env on server
       - MEDIUM_API_KEY=${MEDIUM_API_KEY}
@@ -117,7 +117,7 @@ docker compose -f docker-compose.prod.yml up -d
 
 1. Push this repo to GitHub.
 2. Connect your GitHub repo to Railway: https://railway.app.
-3. Create a **Relay** service from the repo. The root `railway.json` already tells Railway to build with `Dockerfile.relay` and expose port `4000`.
+3. Create a **Relay** service from the repo. The root `railway.json` already tells Railway to build with `Dockerfile.relay` and expose port `8080`.
 4. Create a **Frontend** service from the same repo. In the Railway dashboard, set its **Dockerfile path** to `Dockerfile.frontend` and expose port `3000`.
 5. Add the required environment variables in the Railway dashboard for each service (see below).
 6. Railway auto-deploys on every push to `main`.
@@ -126,7 +126,7 @@ docker compose -f docker-compose.prod.yml up -d
 
 **Relay service**
 - `NODE_ENV=production`
-- `PORT=4000`
+- `PORT=8080`
 - `CORS_ORIGIN=https://your-frontend-domain.railway.app`
 - `AES_KEY=<64-char-hex-key>` (generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
 - Add OAuth credentials as needed: `MEDIUM_API_KEY`, `X_API_KEY`, `LINKEDIN_ACCESS_TOKEN`, `NOTION_TOKEN`, etc.
