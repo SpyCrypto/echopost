@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EchoPost — write once, echo everywhere</title>
+  <meta name="description" content="Privacy-first publishing. Connect your accounts once, publish everywhere, keep your credentials to yourself." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --bg-raised: #11141c;
+      --bg-sunk: #090a0e;
+      --line: #1f2430;
+      --line-bright: #2c3340;
+      --ink: #eef1f6;
+      --ink-dim: #9aa3b2;
+      --ink-faint: #5c6577;
+      --aurora: #6fe0b0;
+      --aurora-deep: #2f9d75;
+      --ember: #e7b072;
+      --rose: #e08a8a;
+      --shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.85);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Hanken Grotesk", sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Atmospheric backdrop — layered aurora glow over a fine grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(60% 50% at 78% -8%, rgba(111, 224, 176, 0.10), transparent 70%),
+        radial-gradient(50% 45% at 8% 0%, rgba(231, 176, 114, 0.07), transparent 70%);
+      pointer-events: none;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(120% 90% at 50% 0%, #000 8%, transparent 65%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+    /* ---------- Masthead ---------- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 30px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .glyph {
+      width: 38px; height: 38px;
+      display: grid; place-items: center;
+      border: 1px solid var(--line-bright);
+      border-radius: 11px;
+      background: linear-gradient(160deg, var(--bg-raised), var(--bg-sunk));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .glyph svg { display: block; }
+    .wordmark {
+      font-family: "Fraunces", serif;
+      font-weight: 600;
+      font-size: 1.42rem;
+      letter-spacing: -0.02em;
+    }
+    .wordmark em { font-style: italic; color: var(--aurora); font-weight: 500; }
+    .tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border: 1px solid var(--line);
+      padding: 7px 12px;
+      border-radius: 999px;
+    }
+    .tag b { color: var(--aurora); font-weight: 500; }
+
+    /* ---------- Hero strip ---------- */
+    .hero { padding: 52px 0 26px; max-width: 720px; }
+    .hero h1 {
+      font-family: "Fraunces", serif;
+      font-weight: 400;
+      font-size: clamp(2.4rem, 5.4vw, 3.9rem);
+      line-height: 1.04;
+      letter-spacing: -0.025em;
+    }
+    .hero h1 .accent { font-style: italic; color: var(--aurora); }
+    .hero p {
+      margin-top: 18px;
+      color: var(--ink-dim);
+      font-size: 1.06rem;
+      max-width: 560px;
+    }
+
+    /* ---------- Layout ---------- */
+    .grid {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 22px;
+      padding: 14px 0 80px;
+      align-items: start;
+    }
+    @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: linear-gradient(180deg, var(--bg-raised), var(--bg-sunk));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .panel + .panel { margin-top: 22px; }
+    .panel-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 20px 22px 0;
+    }
+    .panel-head h2 {
+      font-family: "Fraunces", serif;
+      font-weight: 500;
+      font-size: 1.22rem;
+      letter-spacing: -0.01em;
+    }
+    .panel-head .count {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.72rem;
+      color: var(--ink-faint);
+    }
+    .panel-body { padding: 18px 22px 22px; }
+
+    /* ---------- Forms ---------- */
+    label.field { display: block; margin-bottom: 14px; }
+    .field span {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 7px;
+    }
+    input, textarea, select {
+      width: 100%;
+      background: var(--bg-sunk);
+      border: 1px solid var(--line-bright);
+      border-radius: 10px;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.96rem;
+      padding: 11px 13px;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    textarea { resize: vertical; min-height: 150px; line-height: 1.55; }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--aurora-deep);
+      box-shadow: 0 0 0 3px rgba(111, 224, 176, 0.12);
+    }
+    ::placeholder { color: var(--ink-faint); }
+
+    /* ---------- Platform chooser ---------- */
+    .platforms { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 4px; }
+    .pill {
+      cursor: pointer; user-select: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid var(--line-bright);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--ink-dim);
+      background: var(--bg-sunk);
+      transition: all 0.16s ease;
+    }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); transition: background 0.16s; }
+    .pill[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+    .pill.on {
+      color: var(--bg);
+      background: var(--aurora);
+      border-color: var(--aurora);
+      font-weight: 600;
+    }
+    .pill.on .dot { background: var(--aurora-deep); }
+    .pill:not(.on):not([aria-disabled="true"]):hover { border-color: var(--aurora-deep); color: var(--ink); }
+
+    .row { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+    .grow { flex: 1; }
+
+    /* ---------- Buttons ---------- */
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.92rem;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      padding: 11px 18px;
+      transition: transform 0.12s ease, filter 0.16s, background 0.16s, border-color 0.16s;
+    }
+    button:active { transform: translateY(1px); }
+    .btn-primary {
+      background: var(--aurora);
+      color: #06211a;
+      box-shadow: 0 10px 24px -12px rgba(111, 224, 176, 0.6);
+    }
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink-dim);
+      border-color: var(--line-bright);
+    }
+    .btn-ghost:hover { color: var(--ink); border-color: var(--aurora-deep); }
+    .btn-mini {
+      padding: 6px 11px; font-size: 0.76rem; font-weight: 500;
+      background: transparent; color: var(--ink-faint); border-color: var(--line);
+    }
+    .btn-mini:hover { color: var(--rose); border-color: var(--rose); }
+
+    /* ---------- Connections list ---------- */
+    .conn {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--bg-sunk);
+      margin-bottom: 9px;
+    }
+    .conn-id { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .conn-mark {
+      width: 30px; height: 30px; border-radius: 8px; flex: none;
+      display: grid; place-items: center;
+      font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 0.8rem;
+      color: var(--bg); background: var(--aurora);
+    }
+    .conn-meta { min-width: 0; }
+    .conn-meta b { font-size: 0.9rem; display: block; text-transform: capitalize; }
+    .conn-meta small { color: var(--ink-faint); font-size: 0.78rem; }
+
+    /* ---------- Activity feed ---------- */
+    .post {
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--bg-sunk);
+      margin-bottom: 12px;
+    }
+    .post-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .post-title { font-family: "Fraunces", serif; font-size: 1.12rem; font-weight: 500; letter-spacing: -0.01em; }
+    .post-excerpt { color: var(--ink-dim); font-size: 0.9rem; margin-top: 5px; }
+    .badge {
+      flex: none;
+      font-family: "JetBrains Mono", monospace; font-size: 0.62rem; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
+      border: 1px solid var(--line-bright); color: var(--ink-faint);
+    }
+    .badge.published { color: var(--aurora); border-color: var(--aurora-deep); }
+    .deliveries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+    .chip {
+      font-family: "JetBrains Mono", monospace; font-size: 0.68rem;
+      padding: 4px 9px; border-radius: 7px; display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--line); color: var(--ink-dim); text-transform: capitalize;
+    }
+    .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); }
+    .chip.success { color: var(--aurora); border-color: rgba(111,224,176,0.3); }
+    .chip.success::before { background: var(--aurora); }
+    .chip.failed { color: var(--rose); border-color: rgba(224,138,138,0.3); }
+    .chip.failed::before { background: var(--rose); }
+
+    /* ---------- Empty / loading ---------- */
+    .empty {
+      text-align: center; padding: 34px 18px; color: var(--ink-faint);
+      border: 1px dashed var(--line-bright); border-radius: 12px;
+    }
+    .empty svg { margin-bottom: 12px; opacity: 0.6; }
+    .empty p { font-size: 0.9rem; }
+    .skel { height: 78px; border-radius: 12px; margin-bottom: 12px;
+      background: linear-gradient(100deg, var(--bg-sunk) 30%, var(--line) 50%, var(--bg-sunk) 70%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    .err { color: var(--rose); font-size: 0.84rem; margin-top: 8px; min-height: 1em; }
+
+    /* ---------- Toast ---------- */
+    #toast {
+      position: fixed; bottom: 26px; left: 50%; transform: translate(-50%, 140%);
+      background: var(--bg-raised); border: 1px solid var(--line-bright);
+      padding: 13px 20px; border-radius: 11px; box-shadow: var(--shadow);
+      font-size: 0.9rem; z-index: 50; transition: transform 0.36s cubic-bezier(.2,.9,.3,1);
+      display: flex; align-items: center; gap: 10px; max-width: 90vw;
+    }
+    #toast.show { transform: translate(-50%, 0); }
+    #toast .bar { width: 3px; height: 20px; border-radius: 3px; background: var(--aurora); }
+    #toast.bad .bar { background: var(--rose); }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0 60px;
+      color: var(--ink-faint);
+      font-size: 0.8rem;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    footer a { color: var(--ink-dim); text-decoration: none; }
+    footer a:hover { color: var(--aurora); }
+
+    /* staggered entrance */
+    .reveal { opacity: 0; transform: translateY(14px); animation: rise 0.7s cubic-bezier(.2,.7,.3,1) forwards; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="reveal" style="animation-delay:.02s">
+      <div class="brand">
+        <span class="glyph" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" fill="#6fe0b0" />
+            <circle cx="12" cy="12" r="7" stroke="#2f9d75" stroke-width="1.5" opacity="0.8" />
+            <circle cx="12" cy="12" r="10.5" stroke="#2f9d75" stroke-width="1.2" opacity="0.4" />
+          </svg>
+        </span>
+        <span class="wordmark">Echo<em>Post</em></span>
+      </div>
+      <span class="tag">Credentials <b>never stored</b></span>
+    </header>
+
+    <section class="hero reveal" style="animation-delay:.08s">
+      <h1>Write once.<br /><span class="accent">Echo</span> everywhere.</h1>
+      <p>Connect your publishing destinations a single time, compose in one place, and dispatch to every platform at once. Your access tokens are exchanged at send time and never kept on disk.</p>
+    </section>
+
+    <main class="grid">
+      <!-- Composer + activity -->
+      <div class="reveal" style="animation-delay:.14s">
+        <section class="panel">
+          <div class="panel-head"><h2>Compose</h2><span class="count" id="connHint">no destinations yet</span></div>
+          <div class="panel-body">
+            <label class="field">
+              <span>Title</span>
+              <input id="title" placeholder="A field guide to leaving no trace" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>Content</span>
+              <textarea id="content" placeholder="Markdown welcome. Draft your thoughts here, then choose where they land."></textarea>
+            </label>
+            <div class="field">
+              <span>Send to</span>
+              <div class="platforms" id="platformPicker"></div>
+            </div>
+            <div class="row">
+              <button class="btn-ghost" id="saveBtn" type="button">Save draft</button>
+              <button class="btn-primary grow" id="publishBtn" type="button">Publish now</button>
+            </div>
+            <div class="err" id="composeErr"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h2>Activity</h2><span class="count" id="postCount"></span></div>
+          <div class="panel-body" id="feed"></div>
+        </section>
+      </div>
+
+      <!-- Connections -->
+      <div class="reveal" style="animation-delay:.2s">
+        <section class="panel">
+          <div class="panel-head"><h2>Destinations</h2><span class="count" id="acctCount"></span></div>
+          <div class="panel-body">
+            <label class="field">
+              <span>Platform</span>
+              <select id="connPlatform">
+                <option value="medium">Medium</option>
+                <option value="devto">Dev.to</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="x">X</option>
+                <option value="notion">Notion</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Account handle</span>
+              <input id="connHandle" placeholder="e.g. marisol.vega" autocomplete="off" />
+            </label>
+            <button class="btn-primary" id="connectBtn" type="button" style="width:100%">Connect destination</button>
+            <div class="err" id="connErr"></div>
+            <div id="connList" style="margin-top:18px"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <span>EchoPost · privacy-first publishing on the Midnight Protocol</span>
+      <span><a href="https://docs.netlify.com" target="_blank" rel="noopener">Running on Netlify</a></span>
+    </footer>
+  </div>
+
+  <div id="toast"><span class="bar"></span><span id="toastMsg"></span></div>
+
+  <script>
+    const PLATFORMS = [
+      { id: "medium", label: "Medium" },
+      { id: "devto", label: "Dev.to" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "x", label: "X" },
+      { id: "notion", label: "Notion" },
+    ];
+    const labelOf = (id) => (PLATFORMS.find((p) => p.id === id) || { label: id }).label;
+
+    const state = { accounts: [], posts: [], selected: new Set() };
+
+    const $ = (id) => document.getElementById(id);
+
+    async function api(path, opts) {
+      const res = await fetch(path, {
+        headers: { "Content-Type": "application/json" },
+        ...opts,
+      });
+      if (!res.ok) {
+        let msg = "Request failed";
+        try { msg = (await res.json()).error || msg; } catch (_) {}
+        throw new Error(msg);
+      }
+      return res.status === 204 ? null : res.json();
+    }
+
+    function toast(message, bad) {
+      const t = $("toast");
+      $("toastMsg").textContent = message;
+      t.classList.toggle("bad", !!bad);
+      t.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove("show"), 3200);
+    }
+
+    function connectedSet() {
+      return new Set(state.accounts.filter((a) => a.status === "connected").map((a) => a.platform));
+    }
+
+    /* ---------- Renderers ---------- */
+    function renderPicker() {
+      const connected = connectedSet();
+      const host = $("platformPicker");
+      host.innerHTML = "";
+      PLATFORMS.forEach((p) => {
+        const live = connected.has(p.id);
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "pill" + (state.selected.has(p.id) ? " on" : "");
+        if (!live) { el.setAttribute("aria-disabled", "true"); state.selected.delete(p.id); }
+        el.innerHTML = `<span class="dot"></span>${p.label}`;
+        el.title = live ? "" : "Connect this destination first";
+        el.onclick = () => {
+          if (!live) { toast(`Connect ${p.label} first`, true); return; }
+          state.selected.has(p.id) ? state.selected.delete(p.id) : state.selected.add(p.id);
+          renderPicker();
+        };
+        host.appendChild(el);
+      });
+      const n = connected.size;
+      $("connHint").textContent = n ? `${n} destination${n > 1 ? "s" : ""} ready` : "no destinations yet";
+    }
+
+    function renderConnections() {
+      const host = $("connList");
+      $("acctCount").textContent = state.accounts.length ? `${state.accounts.length} linked` : "";
+      if (!state.accounts.length) {
+        host.innerHTML = `<div class="empty"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5c6577" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg><p>No destinations linked. Connect one to start publishing.</p></div>`;
+        return;
+      }
+      host.innerHTML = "";
+      state.accounts.forEach((a) => {
+        const row = document.createElement("div");
+        row.className = "conn";
+        row.innerHTML = `
+          <div class="conn-id">
+            <span class="conn-mark">${a.platform.slice(0, 2).toUpperCase()}</span>
+            <div class="conn-meta">
+              <b>${labelOf(a.platform)}</b>
+              <small>@${escapeHtml(a.handle)}</small>
+            </div>
+          </div>
+          <button class="btn-mini" data-id="${a.id}" type="button">Disconnect</button>`;
+        row.querySelector("button").onclick = () => disconnect(a.id, labelOf(a.platform));
+        host.appendChild(row);
+      });
+    }
+
+    function renderFeed() {
+      const host = $("feed");
+      $("postCount").textContent = state.posts.length ? `${state.posts.length} item${state.posts.length > 1 ? "s" : ""}` : "";
+      if (!state.posts.length) {
+        host.innerHTML = `<div class="empty"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5c6577" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p>Nothing here yet. Your drafts and deliveries will appear in this column.</p></div>`;
+        return;
+      }
+      host.innerHTML = "";
+      state.posts.forEach((p) => {
+        const card = document.createElement("article");
+        card.className = "post";
+        const excerpt = (p.content || "").trim().replace(/\s+/g, " ").slice(0, 120);
+        const deliveries = (p.deliveries || [])
+          .map((d) => `<span class="chip ${d.status}" title="${escapeHtml(d.detail || "")}">${labelOf(d.platform)}</span>`)
+          .join("");
+        card.innerHTML = `
+          <div class="post-top">
+            <div>
+              <div class="post-title">${escapeHtml(p.title)}</div>
+              ${excerpt ? `<div class="post-excerpt">${escapeHtml(excerpt)}${p.content.length > 120 ? "…" : ""}</div>` : ""}
+            </div>
+            <span class="badge ${p.status}">${p.status}</span>
+          </div>
+          ${deliveries ? `<div class="deliveries">${deliveries}</div>` : ""}`;
+        host.appendChild(card);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    /* ---------- Actions ---------- */
+    async function load() {
+      $("feed").innerHTML = '<div class="skel"></div><div class="skel"></div>';
+      try {
+        const [accounts, posts] = await Promise.all([api("/api/accounts"), api("/api/posts")]);
+        state.accounts = accounts;
+        state.posts = posts;
+        renderPicker();
+        renderConnections();
+        renderFeed();
+      } catch (e) {
+        $("feed").innerHTML = `<div class="empty"><p>Could not reach the server. ${escapeHtml(e.message)}</p></div>`;
+      }
+    }
+
+    async function connect() {
+      const platform = $("connPlatform").value;
+      const handle = $("connHandle").value.trim();
+      $("connErr").textContent = "";
+      if (!handle) { $("connErr").textContent = "Enter the account handle."; return; }
+      const btn = $("connectBtn"); btn.disabled = true;
+      try {
+        await api("/api/accounts", { method: "POST", body: JSON.stringify({ platform, handle }) });
+        $("connHandle").value = "";
+        toast(`${labelOf(platform)} connected`);
+        await load();
+      } catch (e) {
+        $("connErr").textContent = e.message;
+      } finally { btn.disabled = false; }
+    }
+
+    async function disconnect(id, label) {
+      try {
+        await api(`/api/accounts/${id}`, { method: "DELETE" });
+        toast(`${label} disconnected`);
+        await load();
+      } catch (e) { toast(e.message, true); }
+    }
+
+    async function createPost() {
+      const title = $("title").value.trim();
+      const content = $("content").value;
+      if (!title) { $("composeErr").textContent = "Give your post a title first."; return null; }
+      $("composeErr").textContent = "";
+      return api("/api/posts", { method: "POST", body: JSON.stringify({ title, content }) });
+    }
+
+    async function saveDraft() {
+      const btn = $("saveBtn"); btn.disabled = true;
+      try {
+        const post = await createPost();
+        if (!post) return;
+        clearComposer();
+        toast("Draft saved");
+        await load();
+      } catch (e) { $("composeErr").textContent = e.message; }
+      finally { btn.disabled = false; }
+    }
+
+    async function publish() {
+      const platforms = [...state.selected];
+      if (!platforms.length) { $("composeErr").textContent = "Pick at least one destination."; return; }
+      const btn = $("publishBtn"); btn.disabled = true;
+      try {
+        const post = await createPost();
+        if (!post) return;
+        const res = await api("/api/publish", {
+          method: "POST",
+          body: JSON.stringify({ postId: post.id, platforms }),
+        });
+        const ok = res.deliveries.filter((d) => d.status === "success").length;
+        clearComposer();
+        toast(ok ? `Echoed to ${ok} destination${ok > 1 ? "s" : ""}` : "Published, but no destinations succeeded", !ok);
+        await load();
+      } catch (e) { $("composeErr").textContent = e.message; }
+      finally { btn.disabled = false; }
+    }
+
+    function clearComposer() {
+      $("title").value = "";
+      $("content").value = "";
+      state.selected.clear();
+      renderPicker();
+    }
+
+    $("connectBtn").onclick = connect;
+    $("connHandle").addEventListener("keydown", (e) => { if (e.key === "Enter") connect(); });
+    $("saveBtn").onclick = saveDraft;
+    $("publishBtn").onclick = publish;
+
+    load();
+  </script>
+</body>
+</html>

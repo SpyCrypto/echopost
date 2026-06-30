@@ -1,0 +1,7 @@
+[build]
+  publish = "public"
+  command = "echo 'EchoPost serves a static UI backed by Netlify Functions — no build step required'"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
