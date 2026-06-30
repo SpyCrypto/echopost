@@ -10,7 +10,6 @@ COPY apps/relay/package*.json ./
 RUN npm install || npm ci
 
 # Copy source code
-COPY apps/relay/src ./src
 COPY apps/relay/index.js ./
 
 # Run build if needed (adjust if relay has a build script)
@@ -26,7 +25,6 @@ RUN apk add --no-cache dumb-init
 
 # Copy node_modules and built app from builder
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/src ./src
 COPY --from=builder /app/index.js ./index.js
 COPY apps/relay/package.json ./package.json
 
