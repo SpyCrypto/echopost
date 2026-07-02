@@ -1,0 +1,9 @@
+# Official Midnight proof server
+# Based on midnightnetwork/proof-server
+FROM midnightnetwork/proof-server:latest
+
+EXPOSE 6800
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:6800/health || exit 1

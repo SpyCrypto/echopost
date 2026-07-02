@@ -46,13 +46,18 @@ services:
   proof-server:
     build:
       context: .
-      dockerfile: Dockerfile.midnight
-    command: npm run proof-server
+      dockerfile: Dockerfile.proof-server
     ports:
       - "6800:6800"
     environment:
       - NODE_ENV=development
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6800/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - echopost-network
 
