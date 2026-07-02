@@ -1,34 +1,14 @@
-# Midnight development environment
-# Combines official toolkit with Node.js for CLI tools
-FROM node:22-alpine
+# Midnight Compact development environment
+# Uses official Midnight image with compact compiler pre-installed
+FROM midnightntwrk/midnight-node-toolkit:latest-main
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apk add --no-cache \
-    curl \
-    git \
-    bash \
-    build-base \
-    python3 \
-    ca-certificates
+# Install additional Node.js tools if needed
+RUN npm install -g typescript ts-node 2>/dev/null || true
 
 # Create directories for contracts and managed output
 RUN mkdir -p /app/contracts /app/managed
-
-# Install Midnight development packages from npm
-# Try multiple package names and registries
-RUN npm install -g \
-    @midnight-protocol/compact-cli \
-    @midnight-protocol/sdk \
-    @midnight-protocol/cli \
-    @midnightnetwork/cli \
-    typescript \
-    ts-node || true
-
-# If npm packages fail, we can still use the toolkit binary
-# Copy midnight-node-toolkit binary if available
-RUN which midnight-node-toolkit || echo "Toolkit will be available via docker image"
 
 # Expose ports for proof server and development
 EXPOSE 6800 8545
