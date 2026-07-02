@@ -1,0 +1,11 @@
+# Official Midnight proof server from Node Toolkit
+FROM midnightntwrk/midnight-node-toolkit:latest-main
+
+EXPOSE 6800
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:6800/health || exit 1
+
+# Start proof server
+CMD ["midnight", "serve", "--network", "preprod"]
