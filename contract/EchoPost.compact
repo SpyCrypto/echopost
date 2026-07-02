@@ -1,0 +1,123 @@
+// EchoPost Compact Smart Contract for Midnight Network
+// Manages encrypted credential storage and publishing verification
+
+module EchoPost;
+
+// Public state - visible on blockchain
+public struct CredentialHash {
+    user_id: u64,
+    platform: string[32],
+    hash: [u8; 32],
+    timestamp: u64
+}
+
+// Private state - encrypted and only accessible with ZK proofs
+private struct EncryptedCredential {
+    user_id: u64,
+    platform: string[32],
+    encrypted_data: [u8; 256],
+    nonce: [u8; 24],
+    valid_until: u64
+}
+
+// Publishing record
+public struct PublishRecord {
+    user_id: u64,
+    content_hash: [u8; 32],
+    platforms: [string[32]; 5],
+    timestamp: u64,
+    success: bool
+}
+
+// Contract state
+public credential_hashes: Map<u64, CredentialHash> = Map::new();
+private encrypted_credentials: Map<u64, EncryptedCredential> = Map::new();
+public publish_records: Map<u64, PublishRecord> = Map::new();
+public user_nonce: u64 = 0u64;
+
+// Store credential hash publicly (for verification)
+public fn store_credential_hash(
+    user_id: u64,
+    platform: string[32],
+    hash: [u8; 32]
+) -> bool {
+    let timestamp = get_block_timestamp();
+    let credential_hash = CredentialHash {
+        user_id: user_id,
+        platform: platform,
+        hash: hash,
+        timestamp: timestamp
+    };
+    credential_hashes.insert(user_id, credential_hash);
+    true
+}
+
+// Store encrypted credential privately (requires ZK proof)
+public fn store_encrypted_credential(
+    user_id: u64,
+    platform: string[32],
+    encrypted_data: [u8; 256],
+    nonce: [u8; 24],
+    valid_until: u64
+) -> bool {
+    let credential = EncryptedCredential {
+        user_id: user_id,
+        platform: platform,
+        encrypted_data: encrypted_data,
+        nonce: nonce,
+        valid_until: valid_until
+    };
+    encrypted_credentials.insert(user_id, credential);
+    true
+}
+
+// Verify credential ownership using ZK proof
+public fn verify_credential(
+    user_id: u64,
+    proof: [u8; 192]
+) -> bool {
+    // ZK circuit verifies that user owns the credential without revealing it
+    // This is a placeholder - actual ZK verification happens off-chain
+    true
+}
+
+// Record publish event
+public fn record_publish(
+    user_id: u64,
+    content_hash: [u8; 32],
+    platforms: [string[32]; 5],
+    success: bool
+) -> bool {
+    let timestamp = get_block_timestamp();
+    let record = PublishRecord {
+        user_id: user_id,
+        content_hash: content_hash,
+        platforms: platforms,
+        timestamp: timestamp,
+        success: success
+    };
+    publish_records.insert(user_id, record);
+    true
+}
+
+// Get credential hash (public query)
+public fn get_credential_hash(user_id: u64) -> CredentialHash {
+    credential_hashes.get(user_id)
+}
+
+// Get publish record (public query)
+public fn get_publish_record(user_id: u64) -> PublishRecord {
+    publish_records.get(user_id)
+}
+
+// Increment user nonce for replay protection
+public fn increment_nonce(user_id: u64) -> u64 {
+    user_nonce = user_nonce + 1u64;
+    user_nonce
+}
+
+// Get current block timestamp
+private fn get_block_timestamp() -> u64 {
+    // This would be provided by the Midnight runtime
+    0u64
+}

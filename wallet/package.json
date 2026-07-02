@@ -1,0 +1,17 @@
+{
+  "name": "@echopost/wallet",
+  "version": "1.0.0",
+  "description": "EchoPost Midnight wallet integration",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-wallet.js",
+    "fund": "node scripts/fund-wallet.js",
+    "balance": "node scripts/check-balance.js"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/wallet-sdk-facade": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-types": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-network-id": "^4.0.4",
+    "dotenv": "^16.3.1"
+  }
+}

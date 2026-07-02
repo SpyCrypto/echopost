@@ -1,0 +1,6 @@
+[package]
+name = "echopost-credential-proof"
+type = "bin"
+authors = [0]
+
+[dependencies]

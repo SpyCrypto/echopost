@@ -1,0 +1,12 @@
+{
+  "name": "@echopost/circuits",
+  "version": "1.0.0",
+  "description": "EchoPost ZK circuits using Noir",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-circuits.js",
+    "prove": "node scripts/prove-circuits.js",
+    "verify": "node scripts/verify-circuits.js",
+    "test": "node scripts/test-circuits.js"
+  }
+}

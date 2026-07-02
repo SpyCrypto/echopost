@@ -1,0 +1,23 @@
+{
+  "name": "@echopost/contract",
+  "version": "1.0.0",
+  "description": "EchoPost Midnight smart contracts",
+  "type": "module",
+  "scripts": {
+    "build": "midnight-compact build",
+    "deploy": "node scripts/deploy.js",
+    "test": "node scripts/test.js"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/midnight-js-contracts": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-types": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-network-id": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-utils": "^4.0.4",
+    "@midnight-ntwrk/wallet-sdk-facade": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-compact": "^4.0.4",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

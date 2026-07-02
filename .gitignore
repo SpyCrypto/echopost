@@ -9,3 +9,17 @@ build/
 .vscode/
 .idea/
 coverage/
+
+# Blockchain sensitive files
+wallet/wallet-info.json
+wallet/.env
+contract/deployment-info.json
+contract/.env
+contract/private-state/
+circuits/target/
+circuits/noir-lock/
+
+# ZK artifacts
+*.pk
+*.vk
+*.proof
