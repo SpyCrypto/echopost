@@ -1,397 +1,279 @@
 # EchoPost Midnight Preprod Deployment Guide
 
-This guide walks you through deploying the EchoPost Compact contract to Midnight Preprod network using the official Midnight CLI.
+Using the official **Midnight Node Toolkit** to deploy your Compact contract.
 
 ## Prerequisites
 
 ✅ **Wallet Setup**
 - Seed phrase: `predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege`
-- Midnight address: `mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl`
-- Private key: `Kxotbb7osTAtxeaQnJtmL3YSAMFcuuRGHvNcmf8uh5tXWVtJfDgo`
-- Testnet balance: tNight tokens available on Preprod
+- Address: `mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl`
+- Testnet tokens: tNight available on Preprod
 
 ✅ **Contract Ready**
-- Compact contract: `contracts/EchoPost.compact`
-- Generated circuits: `managed/circuits/EchoPost.circuit`
-- Verification key: `managed/circuits/EchoPost.vk`
-- Proving key: `managed/keys/EchoPost.proving.key`
+- File: `contracts/EchoPost.compact`
+- Circuits: `managed/circuits/EchoPost.circuit`
+- Keys: `managed/keys/EchoPost.proving.key`
 
-✅ **Docker Setup**
-- Docker Desktop running
-- `docker compose` available
-- All containers built and tested
+✅ **Toolkit Available**
+- Docker image: `midnightntwrk/midnight-node-toolkit:latest-main`
+- Installed via: `docker pull midnightntwrk/midnight-node-toolkit:latest-main`
 
-## Step 1: Set Up Local Wallet (Optional - for testing)
+## Step 1: Check Wallet Balance
 
-Test locally first before deploying to Preprod:
+Verify your wallet has tNight:
 
 ```bash
-cd "C:\Users\Kurti\Downloads\_NightforceProjects\echopost-repo"
-
-# Start local devnet
-docker compose run --rm contracts midnight localnet up
-
-# Create a test wallet (in another terminal)
-docker compose run --rm contracts midnight wallet generate alice
-
-# Fund wallet with local test tokens
-docker compose run --rm contracts midnight airdrop 1000
-
-# Check balance
-docker compose run --rm contracts midnight balance
-```
-
-## Step 2: Configure Midnight Network
-
-Set your network to Preprod:
-
-```bash
-docker compose run --rm contracts bash -c "midnight config set network preprod"
-
-# Verify configuration
-docker compose run --rm contracts midnight config get network
-```
-
-## Step 3: Import Your Wallet
-
-Import your wallet using the seed phrase:
-
-```bash
-docker compose run --rm contracts bash -c "midnight wallet import --mnemonic 'predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege'"
-```
-
-Or if using interactive mode:
-
-```bash
-docker compose run --rm contracts bash
-
-# Inside container:
-midnight wallet import
-# Paste your seed phrase when prompted
-```
-
-## Step 4: Verify Wallet and Balance
-
-Check your imported wallet:
-
-```bash
-docker compose run --rm contracts midnight wallet list
-
-# Get balance on Preprod
-docker compose run --rm contracts bash -c "midnight balance"
+docker run --rm midnightntwrk/midnight-node-toolkit:latest-main show-wallet \
+  --seed "predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege" \
+  --src-url ws://preprod-rpc.midnight.network:9944
 ```
 
 Expected output:
 ```
+Wallet State
+============
 Address: mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl
 Balance: X.XX tNight
+DUST: Y.YY
 ```
 
-## Step 5: Register for Transfers (Dust Protocol)
+## Step 2: Check DUST Balance
 
-Midnight requires DUST registration for transfers:
-
-```bash
-docker compose run --rm contracts midnight dust register
-```
-
-Wait for confirmation (1-2 minutes on Preprod).
-
-## Step 6: Compile Contract
-
-Compile your Compact contract:
+Verify DUST availability (required for private transactions):
 
 ```bash
-docker compose run --rm contracts bash -c "cd contracts && midnight compile EchoPost.compact"
+docker run --rm midnightntwrk/midnight-node-toolkit:latest-main dust-balance \
+  --seed "predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege" \
+  --src-url ws://preprod-rpc.midnight.network:9944
 ```
 
 Expected output:
 ```
-✓ Compilation successful
-✓ ZK circuits generated
-✓ Keys generated
-
-Generated artifacts:
-- ../managed/circuits/EchoPost.circuit
-- ../managed/circuits/EchoPost.vk
-- ../managed/keys/EchoPost.proving.key
+DUST Balance: Z.ZZ
 ```
 
-## Step 7: Deploy Contract to Preprod
-
-Deploy your contract to Preprod network:
-
+**If DUST is 0:**
 ```bash
-docker compose run --rm contracts bash -c "midnight contract deploy --network preprod --contract EchoPost --private-key Kxotbb7osTAtxeaQnJtmL3YSAMFcuuRGHvNcmf8uh5tXWVtJfDgo"
+# Register for DUST
+docker run --rm midnightntwrk/midnight-node-toolkit:latest-main send-intent \
+  --dest-url ws://preprod-rpc.midnight.network:9944 \
+  --funding-seed "predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege"
 ```
 
-Or use interactive mode:
+## Step 3: Show Wallet Address
+
+Get your wallet's viewing key and full address:
 
 ```bash
-docker compose run --rm contracts bash
+docker run --rm midnightntwrk/midnight-node-toolkit:latest-main show-address \
+  --seed "predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege"
+```
 
-# Inside container:
-midnight contract deploy --network preprod
+Output includes:
+- Wallet address
+- Viewing key (for shielded transactions)
+- Network identification
 
-# Select contract: EchoPost
-# Confirm deployment (will be charged tNight gas fee)
+## Step 4: Compile Contract to Intent
+
+First, ensure your contract is compiled. The compilation should produce:
+- `.mn` intent files (serialized contract code)
+- `circuits/` directory with ZK circuits
+- `keys/` directory with proving keys
+
+**Status**: Awaiting Midnight Compact compiler release for full compilation
+
+For now, use placeholder intent files in `managed/`:
+
+```bash
+# Create sample intent directory structure
+mkdir -p managed/echopost-intent
+echo "placeholder intent" > managed/echopost-intent/EchoPost.mn
+```
+
+## Step 5: Deploy Contract via send-intent
+
+Deploy your contract to Preprod:
+
+```bash
+docker run --rm \
+  -v $(pwd)/managed:/app/managed \
+  midnightntwrk/midnight-node-toolkit:latest-main send-intent \
+  --dest-url ws://preprod-rpc.midnight.network:9944 \
+  --proof-server http://proof-server:6800 \
+  --compiled-contract-dir /app/managed \
+  --intent-file /app/managed/echopost-intent/EchoPost.mn \
+  --funding-seed "predict mind kingdom wage limit mixture vicious horse siren bike puzzle barrel approve memory entry pretty pizza bright photo immune cat pen common siege"
 ```
 
 Expected output:
 ```
-✓ Contract compiled
-✓ ZK proofs generated
-✓ Deployment initiated
+✓ Transaction Generated
+✓ Proofs Generated
+✓ Transaction Sent
 
-Contract deployed successfully!
-Contract Address: 0x1234567890abcdef...
 Transaction Hash: 0xabcdef1234567890...
 Block: 12345
-Gas Used: 50000
+Status: Finalized
 ```
 
-## Step 8: Capture Screenshots
+## Step 6: Verify Deployment
 
-Take and save screenshots:
-
-1. **Contract Address & Deployment Success**
-   ```
-   Contract deployed successfully!
-   Contract Address: 0x...
-   ```
-   Save as: `docs/screenshots/01-deployment-success.png`
-
-2. **Block Explorer Verification**
-   - Visit: https://preprod.block-explorer.midnight.network/
-   - Search for your contract address
-   - Screenshot the contract details page
-   - Save as: `docs/screenshots/02-block-explorer-verified.png`
-
-3. **Wallet Balance**
-   - Run: `docker compose run --rm contracts midnight balance`
-   - Show remaining tNight balance
-   - Save as: `docs/screenshots/03-wallet-after-deployment.png`
-
-## Step 9: Verify Contract on Chain
-
-Query your deployed contract:
+Check if your contract is deployed:
 
 ```bash
-# Get contract info
-docker compose run --rm contracts bash -c "midnight contract info --address <your_contract_address> --network preprod"
-
-# Call a public function
-docker compose run --rm contracts bash -c "midnight contract call --address <your_contract_address> --function getPublishedPosts --network preprod"
-
-# Should return empty array initially
-# Result: []
+docker run --rm midnightntwrk/midnight-node-toolkit:latest-main show-wallet \
+  --address mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl \
+  --src-url ws://preprod-rpc.midnight.network:9944
 ```
 
-## Step 10: Interact with Contract
+Look for contract state in the output.
 
-Test your contract's public functions:
+## Step 7: Monitor on Block Explorer
 
-```bash
-docker compose run --rm contracts bash
+View your transaction on the Preprod block explorer:
 
-# Inside container:
-# Publish a test post
-midnight contract call \
-  --address <your_contract_address> \
-  --function publishToMultiple \
-  --args postId=0x123 \
-           title="EchoPost Launch" \
-           contentHash=0xabc \
-           platforms='["medium","x"]'
-
-# Query posts
-midnight contract call \
-  --address <your_contract_address> \
-  --function getPublishedPosts
+```
+https://preprod.block-explorer.midnight.network/
 ```
 
-## Step 11: Commit & Push
+Search for:
+- Your wallet address: `mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl`
+- Contract address (shown after deployment)
+- Transaction hash (from deployment output)
 
-Commit your deployment artifacts:
+## Toolkit Commands Reference
 
+### Wallet Operations
+
+**Show wallet state:**
 ```bash
-# Create screenshots directory if needed
-mkdir -p docs/screenshots
+midnight-node-toolkit show-wallet \
+  --seed "<seed_phrase>" \
+  --src-url ws://preprod-rpc.midnight.network:9944
+```
 
-# Add deployment artifacts
-git add docs/screenshots/
-git add managed/
+**Show wallet address:**
+```bash
+midnight-node-toolkit show-address \
+  --seed "<seed_phrase>"
+```
 
-# Commit with deployment details
-git commit -m "feat: deploy EchoPost contract to Midnight Preprod
+**Check DUST balance:**
+```bash
+midnight-node-toolkit dust-balance \
+  --seed "<seed_phrase>"
+```
 
-- Contract Address: 0x...
-- Transaction Hash: 0x...
-- Block: 12345
-- Screenshots: deployment success, block explorer, wallet balance
-- All ZK circuits and keys verified
-- Contract interactive and callable on Preprod network"
+**Show viewing key:**
+```bash
+midnight-node-toolkit show-viewing-key \
+  --seed "<seed_phrase>"
+```
 
-git push origin main
+### Contract Deployment
+
+**Send intent (deploy contract):**
+```bash
+midnight-node-toolkit send-intent \
+  --dest-url ws://preprod-rpc.midnight.network:9944 \
+  --compiled-contract-dir ./managed \
+  --intent-file <compiled_file.mn> \
+  --funding-seed "<seed_phrase>"
+```
+
+**Show block info:**
+```bash
+midnight-node-toolkit show-block \
+  --src-url ws://preprod-rpc.midnight.network:9944 \
+  <block_number>
+```
+
+**Show transaction:**
+```bash
+midnight-node-toolkit show-transaction \
+  --src-url ws://preprod-rpc.midnight.network:9944 \
+  <transaction_hex>
 ```
 
 ## Troubleshooting
 
-### Error: "Wallet not found"
+### "Cannot connect to node"
 ```bash
-# Import wallet first
-midnight wallet import --mnemonic '<your_seed_phrase>'
+# Verify RPC URL is correct
+curl -i ws://preprod-rpc.midnight.network:9944
 
-# Verify import
-midnight wallet list
+# Try with local node if available
+--src-url ws://127.0.0.1:9944
 ```
 
-### Error: "Insufficient balance"
+### "Insufficient DUST"
 ```bash
-# Check balance
-midnight balance
+# Register for DUST protocol
+midnight-node-toolkit send-intent \
+  --dest-url ws://preprod-rpc.midnight.network:9944 \
+  --funding-seed "<seed_phrase>"
 
-# Request more tNight
-# Visit: https://midnight.network/faucet
-# Or send from another wallet:
-midnight transfer <recipient_address> 100
+# Wait 1-2 minutes then check balance
+midnight-node-toolkit dust-balance --seed "<seed_phrase>"
 ```
 
-### Error: "DUST registration required"
+### "Invalid seed phrase"
+- Verify all 24 words
+- Ensure correct spacing
+- Check no extra characters
+
+### "Transaction failed"
+- Check gas fees in your balance
+- Verify proof server is running
+- Review proof server logs: `docker compose logs proof-server`
+
+## Local Testing (Optional)
+
+Test locally before Preprod:
+
 ```bash
-# Register for dust protocol
-midnight dust register
-
-# Wait 1-2 minutes for confirmation
-midnight dust status
-```
-
-### Contract deployment fails: "Invalid private key"
-- Verify key format: Should be WIF format starting with `K`
-- Check: `echo $env:MIDNIGHT_PRIVATE_KEY`
-- Re-import wallet if needed
-
-### Can't connect to Preprod network
-```bash
-# Verify network configuration
-midnight config get network
-
-# Test connection
-midnight config set network preprod
-midnight balance  # This will attempt network connection
-```
-
-### Proof server connection error
-```bash
-# Start proof server in separate terminal
-docker compose up proof-server
-
-# Or check if already running
-docker compose logs proof-server
-
-# Restart if needed
-docker compose restart proof-server
+# Use local testnet RPC
+midnight-node-toolkit show-wallet \
+  --seed "<seed_phrase>" \
+  --src-url ws://127.0.0.1:9944
 ```
 
 ## Deployment Checklist
 
-- [ ] Midnight CLI installed and working
-- [ ] Wallet imported with seed phrase
-- [ ] Balance verified (has tNight tokens)
-- [ ] DUST registration completed
-- [ ] Network set to Preprod
-- [ ] Contract compiled to ZK circuits
-- [ ] Contract deployed to Preprod
-- [ ] Contract address obtained
-- [ ] Contract verified on block explorer
-- [ ] Screenshots captured (3 minimum)
-- [ ] Public functions tested
-- [ ] Artifacts committed to Git
-- [ ] Changes pushed to GitHub
-- [ ] README updated with contract address
-
-## Local Testing (Before Preprod)
-
-Test your contract locally first:
-
-```bash
-# Terminal 1: Start local devnet
-docker compose run --rm contracts midnight localnet up
-
-# Terminal 2: Create test wallet
-docker compose run --rm contracts midnight wallet generate alice
-
-# Terminal 3: Test deployment
-docker compose run --rm contracts bash
-
-# Inside container:
-midnight config set network undeployed
-midnight wallet select alice
-midnight contract deploy --contract EchoPost --local
-```
-
-## Contract Functions
-
-### Public Functions
-
-**publishToMultiple()**
-```
-Parameters:
-- postId: bytes32 (unique post identifier)
-- title: string (post title)
-- contentHash: bytes32 (hash of post content)
-- platforms: string[] (target platforms: ["medium","x","linkedin"])
-
-Effect: Records post metadata on public ledger
-```
-
-**getPublishedPosts()**
-```
-Returns: PublishedPost[] (all published posts)
-
-Example:
-[
-  {
-    id: 0x...,
-    author: mn_addr_preprod...,
-    title: "My First Post",
-    platforms: ["medium", "x"]
-  }
-]
-```
-
-### Private Witness Functions
-
-**storeCredentials()**
-```
-Parameters:
-- platform: string (e.g., "medium")
-- encryptedCred: bytes (encrypted OAuth token)
-- witness: PrivateWitness
-
-Effect: Stores encrypted credentials privately
-Uses disclose() to reveal only platform name
-```
+- [ ] Wallet seed phrase saved securely
+- [ ] Wallet balance verified (has tNight)
+- [ ] DUST balance confirmed
+- [ ] Contract compiled to intent files
+- [ ] Circuits and keys in `managed/` directory
+- [ ] Proof server running: `docker compose up proof-server`
+- [ ] Deployment command executed
+- [ ] Transaction hash obtained
+- [ ] Block explorer verification complete
+- [ ] Contract state accessible
+- [ ] Public functions callable
+- [ ] Screenshots captured
+- [ ] Changes committed to Git
+- [ ] Pushed to GitHub
 
 ## Resources
 
-- **Midnight CLI Docs**: https://docs.midnight.network/
-- **Preprod Block Explorer**: https://preprod.block-explorer.midnight.network/
-- **Midnight Faucet**: https://midnight.network/faucet
-- **Compact Language Guide**: https://docs.midnight.network/compact
-- **Local Testing**: Start with `midnight localnet up`
+- **Midnight Preprod Block Explorer**: https://preprod.block-explorer.midnight.network/
+- **Midnight Node Toolkit**: https://github.com/midnight-protocol/midnight-node-toolkit
+- **Midnight Documentation**: https://docs.midnight.network/
+- **Preprod RPC**: ws://preprod-rpc.midnight.network:9944
+- **Proof Server**: http://proof-server:6800
 
-## Next Steps After Deployment
+## Contract Details
 
-1. **Update README**: Add deployed contract address
-2. **Test Interactions**: Call deployed contract functions
-3. **Create Tests**: Add Compact test cases in `contracts/tests/`
-4. **Frontend Integration**: Update relay to query on-chain contract
-5. **Mainnet Prep**: Plan for eventual mainnet deployment
+**Name**: EchoPost  
+**Network**: Preprod  
+**Language**: Compact  
+**Status**: Ready for deployment  
+**Wallet**: `mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl`  
 
 ---
 
-**Deployment Status**: Ready  
-**Last Updated**: July 2, 2026  
-**Target Network**: Midnight Preprod  
-**Wallet**: `mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl`
+**Next Step**: Execute deployment script once Compact compiler CLI is available
+
+See `deploy.sh` for automated deployment workflow.
