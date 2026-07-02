@@ -43,6 +43,33 @@ services:
     networks:
       - echopost-network
 
+  proof-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.midnight
+    command: npm run proof-server
+    ports:
+      - "6800:6800"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - echopost-network
+
+  contracts:
+    build:
+      context: .
+      dockerfile: Dockerfile.midnight
+    volumes:
+      - ./contracts:/app/contracts
+      - ./managed:/app/managed
+    working_dir: /app/contracts
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - echopost-network
+
 networks:
   echopost-network:
     driver: bridge

@@ -1,0 +1,64 @@
+// EchoPost.compact - Privacy-first publishing contract
+// Public state: published posts metadata
+// Private witness: OAuth credentials and decryption keys
+
+contract EchoPost {
+  // Public ledger state - visible to all network participants
+  struct PublishedPost {
+    id: bytes32,
+    author: address,
+    title: string,
+    contentHash: bytes32,
+    timestamp: uint64,
+    platforms: string[], // Medium, X, LinkedIn, Devpost, Notion
+  }
+
+  let publishedPosts: PublishedPost[] = [];
+
+  // Private witness - encrypted on-chain, only visible to contract author
+  struct PrivateWitness {
+    oauthCredentials: map<string, bytes>, // Platform -> encrypted credentials
+    encryptionKey: bytes32,
+    userSecret: bytes32,
+  }
+
+  // Publish to multiple platforms (public action)
+  fn publishToMultiple(
+    postId: bytes32,
+    title: string,
+    contentHash: bytes32,
+    platforms: string[]
+  ) {
+    // Record public metadata
+    let post = PublishedPost {
+      id: postId,
+      author: msg.sender,
+      title: title,
+      contentHash: contentHash,
+      timestamp: block.timestamp,
+      platforms: platforms,
+    };
+
+    publishedPosts.push(post);
+  }
+
+  // Private function to store encrypted credentials
+  // Uses disclose() to selectively reveal what becomes public
+  fn storeCredentials(
+    platform: string,
+    encryptedCred: bytes,
+    witness: PrivateWitness
+  ) {
+    // Verify witness privacy (remains private)
+    witness.oauthCredentials[platform] = encryptedCred;
+
+    // Disclose only the platform name (not credentials)
+    disclose(platform);
+    // Action: platform name becomes part of public transaction
+  }
+
+  // Query published posts (public read)
+  fn getPublishedPosts() -> PublishedPost[] {
+    return publishedPosts;
+  }
+}

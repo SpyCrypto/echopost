@@ -1,0 +1,26 @@
+# Midnight toolchain with Compact compiler and proof server
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install system dependencies for Midnight toolchain
+RUN apk add --no-cache \
+    curl \
+    git \
+    bash \
+    build-base \
+    python3 \
+    ca-certificates
+
+# Install Midnight toolchain
+# Note: Replace with official Midnight package installation when available
+RUN npm install -g @midnight/compact-cli
+
+# Create directories for contracts and managed output
+RUN mkdir -p /app/contracts /app/managed
+
+# Expose ports for proof server and development
+EXPOSE 6800 8545
+
+# Default command: bash for interactive development
+CMD ["bash"]

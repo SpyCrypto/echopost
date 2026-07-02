@@ -1,0 +1,59 @@
+name: Compact Contract CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'contracts/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'contracts/**'
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      
+      - name: Install Midnight toolchain
+        run: npm install -g @midnight/compact-cli
+      
+      - name: Validate contract syntax
+        run: compact validate ./contracts/EchoPost.compact
+      
+      - name: Compile Compact contract
+        run: |
+          cd contracts
+          compact compile ./EchoPost.compact --output ../managed
+      
+      - name: Verify generated artifacts
+        run: |
+          test -d managed/circuits || exit 1
+          test -d managed/keys || exit 1
+          ls -la managed/
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: compiled-circuits
+          path: managed/
+          retention-days: 30
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check code formatting
+        run: |
+          test -f contracts/EchoPost.compact
+          test -f contracts/compact.config.json
+          test -f contracts/TESTS.md

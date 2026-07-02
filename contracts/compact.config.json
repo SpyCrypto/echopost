@@ -1,0 +1,23 @@
+{
+  "name": "echopost-contract",
+  "version": "1.0.0",
+  "description": "Privacy-first publishing contract for EchoPost on Midnight",
+  "compact": {
+    "contractPath": "./EchoPost.compact",
+    "outputDir": "../managed",
+    "circuitOutput": "circuits",
+    "keysOutput": "keys"
+  },
+  "deployment": {
+    "networks": {
+      "preview": {
+        "rpcUrl": "https://rpc.midnight.network/preview",
+        "proofServerUrl": "http://proof-server:6800"
+      },
+      "preprod": {
+        "rpcUrl": "https://rpc.midnight.network/preprod",
+        "proofServerUrl": "http://proof-server:6800"
+      }
+    }
+  }
+}
