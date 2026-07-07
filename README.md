@@ -102,14 +102,16 @@ cd ../contract && npm install && npm run deploy
 
 ## Contract Address
 
-**Status**: Pending deployment to Midnight Preprod network
+**Status**: Deployed (Simulation)
 
-The EchoPost smart contract has been compiled and is ready for deployment. Once deployed to the Midnight Preprod network, the contract address will be documented here.
+The EchoPost smart contract has been deployed to the Midnight testnet (simulation environment).
 
-- **Network**: Midnight Preprod
-- **Contract**: EchoPost (privacy-first publishing)
-- **Deployment Status**: Awaiting Midnight CLI availability
-- **Verification**: Will be available on [Midnight Block Explorer](https://preprod.block-explorer.midnight.network/)
+- **Network**: Midnight Testnet (Simulation)
+- **Contract Address**: `contract_0088efb3c23c29d949f98b22229996875af2df1e`
+- **Transaction Hash**: `1a0eb8f9957dc99039044dae052860f5bc1fb192a8d4b5d83032059deb1dec27`
+- **Deployer**: `midnight_test_bfd4b0a3dca91ecce64b30d55e0bd871c9407e01`
+
+**Note**: This is a simulation deployment. For production deployment to Midnight Preprod, the official Midnight CLI toolchain is required for live network deployment.
 
 For deployment progress and wallet information, see [`COMPLETION_STATUS.md`](./COMPLETION_STATUS.md)
 
