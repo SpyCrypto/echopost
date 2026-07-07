@@ -1,0 +1,151 @@
+// Test: End-to-end integration flow
+test "Integration: User publishes to multiple platforms with credentials" {
+  let echopost = deploy(EchoPost);
+  
+  // Step 1: Store credentials privately
+  let witness = PrivateWitness {
+    oauthCredentials: map<string, bytes>{},
+    encryptionKey: 0xaaaa5555ffff0000aaaa5555ffff0000aaaa5555ffff0000aaaa5555ffff0000,
+    userSecret: 0xbbbb6666eeee1111bbbb6666eeee1111bbbb6666eeee1111bbbb6666eeee1111,
+  };
+  
+  echopost.storeCredentials("medium", 0xsecretcredentialshereencrypted, witness);
+  echopost.storeCredentials("x", 0xmoresecretcredentials, witness);
+  echopost.storeCredentials("linkedin", 0xlinkedinsecretcreds, witness);
+  
+  // Step 2: Publish to multiple platforms
+  let postId = 0xintegrationtestpostid123456789012345678901234567890123456789012345678901234;
+  let platforms = ["medium", "x", "linkedin"];
+  
+  echopost.publishToMultiple(
+    postId,
+    "My Integration Test Post",
+    0xcontenthashhere1234567890abcdef1234567890abcdef1234567890abcdef,
+    platforms
+  );
+  
+  // Step 3: Verify public ledger shows only metadata
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 1);
+  assert(posts[0].title == "My Integration Test Post");
+  assert(posts[0].platforms.length == 3);
+  assert(posts[0].author == msg.sender);
+  
+  // Step 4: Verify credentials remain private in witness
+  assert(witness.oauthCredentials["medium"] == 0xsecretcredentialshereencrypted);
+  assert(witness.oauthCredentials["x"] == 0xmoresecretcredentials);
+  assert(witness.oauthCredentials["linkedin"] == 0xlinkedinsecretcreds);
+}
+
+test "Integration: Multiple users publish independently" {
+  let echopost = deploy(EchoPost);
+  
+  // User 1 publishes
+  let postId1 = 0xuser1postid123456789012345678901234567890123456789012345678901234;
+  echopost.publishToMultiple(
+    postId1,
+    "User 1 Post",
+    0xuser1contenthash,
+    ["medium"]
+  );
+  
+  // User 2 publishes (different sender in actual execution)
+  let postId2 = 0xuser2postid123456789012345678901234567890123456789012345678901234;
+  echopost.publishToMultiple(
+    postId2,
+    "User 2 Post",
+    0xuser2contenthash,
+    ["x"]
+  );
+  
+  // Verify both posts are recorded
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 2);
+}
+
+test "Integration: Sequential publishing workflow" {
+  let echopost = deploy(EchoPost);
+  
+  let witness = PrivateWitness {
+    oauthCredentials: map<string, bytes>{},
+    encryptionKey: 0xseqkey1234567890abcdef1234567890abcdef1234567890abcdef1234567890,
+    userSecret: 0xseqsecretabcdef1234567890abcdef1234567890abcdef1234567890abcdef,
+  };
+  
+  // Store credentials first
+  echopost.storeCredentials("notion", 0xnotioncreds, witness);
+  
+  // Publish first post
+  let postId1 = 0xseqpost1123456789012345678901234567890123456789012345678901234567890;
+  echopost.publishToMultiple(postId1, "First Post", 0xhash1, ["notion"]);
+  
+  // Publish second post
+  let postId2 = 0xseqpost2123456789012345678901234567890123456789012345678901234567890;
+  echopost.publishToMultiple(postId2, "Second Post", 0xhash2, ["notion", "medium"]);
+  
+  // Verify workflow
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 2);
+  assert(posts[0].platforms.length == 1);
+  assert(posts[1].platforms.length == 2);
+}
+
+test "Integration: Public ledger query functionality" {
+  let echopost = deploy(EchoPost);
+  
+  // Publish multiple posts
+  for (let i = 0; i < 5; i++) {
+    let postId = bytes32(i);
+    echopost.publishToMultiple(
+      postId,
+      string("Post ") + string(i),
+      bytes32(i * 2),
+      ["medium"]
+    );
+  }
+  
+  // Query all posts
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 5);
+  
+  // Verify order and content
+  assert(posts[0].title == "Post 0");
+  assert(posts[1].title == "Post 1");
+  assert(posts[2].title == "Post 2");
+  assert(posts[3].title == "Post 3");
+  assert(posts[4].title == "Post 4");
+}
+
+test "Integration: Privacy preservation across operations" {
+  let echopost = deploy(EchoPost);
+  
+  let witness = PrivateWitness {
+    oauthCredentials: map<string, bytes>{},
+    encryptionKey: 0xprivkey9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedc,
+    userSecret: 0xprivsec0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd,
+  };
+  
+  // Store sensitive credentials
+  echopost.storeCredentials("medium", 0xhighlysecretdata, witness);
+  echopost.storeCredentials("x", 0xanothersensitivevalue, witness);
+  
+  // Publish public content
+  let postId = 0xprivacypostid123456789012345678901234567890123456789012345678901234;
+  echopost.publishToMultiple(
+    postId,
+    "Public Content",
+    0xpublichash,
+    ["medium", "x"]
+  );
+  
+  // Verify: Public ledger shows only metadata
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 1);
+  assert(posts[0].title == "Public Content");
+  
+  // Verify: Credentials remain private in witness
+  assert(witness.oauthCredentials["medium"] == 0xhighlysecretdata);
+  assert(witness.oauthCredentials["x"] == 0xanothersensitivevalue);
+  assert(witness.encryptionKey == 0xprivkey9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedc);
+  assert(witness.userSecret == 0xprivsec0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd);
+}

@@ -1,0 +1,15 @@
+{
+  "contractName": "EchoPost",
+  "version": "1.0.0",
+  "functions": [
+    "store_credential_hash",
+    "store_encrypted_credential",
+    "verify_credential",
+    "record_publish",
+    "get_credential_hash",
+    "get_publish_record",
+    "increment_nonce"
+  ],
+  "circuitHash": "8e3c7f5b1f0d262b93af7d35dce1cf83129de5ed306fd0108038dfbeec3e7f05",
+  "compiledAt": "2026-07-02T23:01:04.308Z"
+}
