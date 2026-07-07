@@ -71,6 +71,10 @@ services:
     working_dir: /app/contracts
     environment:
       - NODE_ENV=development
+      - PROOF_SERVER_URL=http://proof-server:6800
+    depends_on:
+      proof-server:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - echopost-network
