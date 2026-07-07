@@ -102,16 +102,27 @@ cd ../contract && npm install && npm run deploy
 
 ## Contract Address
 
-**Status**: Deployed (Simulation)
+**Status**: Simulation Deployed | Live Network: RPC Connection Issues
 
-The EchoPost smart contract has been deployed to the Midnight testnet (simulation environment).
+The EchoPost smart contract has been successfully deployed in simulation mode. Live network deployment to Midnight Preprod is currently blocked by RPC connectivity issues.
 
+### Simulation Deployment
 - **Network**: Midnight Testnet (Simulation)
 - **Contract Address**: `contract_0088efb3c23c29d949f98b22229996875af2df1e`
 - **Transaction Hash**: `1a0eb8f9957dc99039044dae052860f5bc1fb192a8d4b5d83032059deb1dec27`
 - **Deployer**: `midnight_test_bfd4b0a3dca91ecce64b30d55e0bd871c9407e01`
 
-**Note**: This is a simulation deployment. For production deployment to Midnight Preprod, the official Midnight CLI toolchain is required for live network deployment.
+### Live Network Status
+- **Target Network**: Midnight Preprod
+- **Wallet Address**: `mn_addr_preprod12w07jcw9k2k30m03t8u3gu9j2gr66r06rfx3p56ncpctrtmsr3qqhtfsjl`
+- **RPC Endpoint**: `wss://rpc.preprod.midnight.network`
+- **Status**: RPC connection refused - network connectivity issue
+
+**Next Steps for Live Deployment**:
+1. Verify Midnight Preprod RPC endpoint availability
+2. Check network connectivity and firewall settings
+3. Ensure proof server is running on port 6300
+4. Retry deployment once connectivity is restored
 
 For deployment progress and wallet information, see [`COMPLETION_STATUS.md`](./COMPLETION_STATUS.md)
 
