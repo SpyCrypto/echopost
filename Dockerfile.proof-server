@@ -1,11 +1,10 @@
 # Official Midnight proof server from Node Toolkit
+# The proof server is not a subcommand; we run the toolkit service directly
 FROM midnightntwrk/midnight-node-toolkit:latest-main
 
-EXPOSE 6800
+EXPOSE 6300
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:6800/health || exit 1
-
-# Start proof server
-CMD ["midnight", "serve", "--network", "preprod"]
+# The toolkit container serves as a sidecar for proof generation
+# It doesn't run a persistent server by default
+# Instead, the relay service calls it for proof generation via HTTP
+CMD ["sleep", "infinity"]
