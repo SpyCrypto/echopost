@@ -1,0 +1,104 @@
+// Test: PublishPost should record metadata on public ledger
+test "PublishPost should record metadata on public ledger" {
+  let echopost = deploy(EchoPost);
+  
+  let postId = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+  let platforms = ["medium", "x", "linkedin"];
+  let title = "My First Privacy Post";
+  let contentHash = 0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789;
+  
+  echopost.publishToMultiple(
+    postId,
+    title,
+    contentHash,
+    platforms
+  );
+  
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 1);
+  assert(posts[0].title == title);
+  assert(posts[0].platforms.length == 3);
+  assert(posts[0].id == postId);
+  assert(posts[0].contentHash == contentHash);
+}
+
+test "PublishPost should track author address" {
+  let echopost = deploy(EchoPost);
+  
+  let postId = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+  let platforms = ["medium"];
+  let author = msg.sender;
+  
+  echopost.publishToMultiple(
+    postId,
+    "Test Post",
+    0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789,
+    platforms
+  );
+  
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 1);
+  assert(posts[0].author == author);
+}
+
+test "PublishPost should record timestamp" {
+  let echopost = deploy(EchoPost);
+  
+  let postId = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+  let platforms = ["devpost"];
+  
+  echopost.publishToMultiple(
+    postId,
+    "Timestamp Test",
+    0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789,
+    platforms
+  );
+  
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 1);
+  assert(posts[0].timestamp > 0);
+  assert(posts[0].timestamp <= block.timestamp);
+}
+
+test "PublishPost should handle multiple platforms" {
+  let echopost = deploy(EchoPost);
+  
+  let postId = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+  let platforms = ["medium", "x", "linkedin", "devpost", "notion"];
+  
+  echopost.publishToMultiple(
+    postId,
+    "Multi-Platform Test",
+    0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789,
+    platforms
+  );
+  
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 1);
+  assert(posts[0].platforms.length == 5);
+}
+
+test "PublishPost should allow multiple posts from same author" {
+  let echopost = deploy(EchoPost);
+  
+  let postId1 = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+  let postId2 = 0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210;
+  
+  echopost.publishToMultiple(
+    postId1,
+    "First Post",
+    0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789,
+    ["medium"]
+  );
+  
+  echopost.publishToMultiple(
+    postId2,
+    "Second Post",
+    0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef,
+    ["x"]
+  );
+  
+  let posts = echopost.getPublishedPosts();
+  assert(posts.length == 2);
+  assert(posts[0].author == posts[1].author);
+}

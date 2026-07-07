@@ -100,6 +100,19 @@ cd ../circuits && npm install && nargo build
 cd ../contract && npm install && npm run deploy
 ```
 
+## Contract Address
+
+**Status**: Pending deployment to Midnight Preprod network
+
+The EchoPost smart contract has been compiled and is ready for deployment. Once deployed to the Midnight Preprod network, the contract address will be documented here.
+
+- **Network**: Midnight Preprod
+- **Contract**: EchoPost (privacy-first publishing)
+- **Deployment Status**: Awaiting Midnight CLI availability
+- **Verification**: Will be available on [Midnight Block Explorer](https://preprod.block-explorer.midnight.network/)
+
+For deployment progress and wallet information, see [`COMPLETION_STATUS.md`](./COMPLETION_STATUS.md)
+
 ## Deployment
 
 - Local development and production deployment guide: [`DOCKER_DEPLOYMENT.md`](./docs/docker-deployment.md)
