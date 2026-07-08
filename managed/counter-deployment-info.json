@@ -1,0 +1,9 @@
+{
+  "contractAddress": "0xaf4dd91feaeaf3fa80969019804c9478cb7da859",
+  "transactionHash": "05e69bdc1c945a5ad4f183656cf3d7d7c80b9f6b41646b04cbec3f9ce8cc36d8",
+  "networkId": "preview",
+  "deployedAt": "2026-07-08T20:57:30.998Z",
+  "deployer": "f49ab046cc...",
+  "gasUsed": 250000,
+  "status": "success"
+}
