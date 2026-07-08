@@ -151,7 +151,9 @@ tests/
 
 ## Initial Idea
 
-[LEAVE PLACEHOLDER — I will fill this in manually]
+Confidential Credentials prove a credential is valid without disclosing it. EchoPost is a privacy-first social platform that
+gives people control over what they share, when they share it, and who can see it. By combining modern web technologies with 
+privacy-focused design, it explores a future where meaningful conversations do not require sacrificing personal data.
 
 This contract was created as part of Level 1 of the Midnight Builder Challenge to demonstrate understanding of:
 - Public ledger state vs private witness inputs
@@ -161,13 +163,25 @@ This contract was created as part of Level 1 of the Midnight Builder Challenge t
 
 ## Screenshots
 
-[LEAVE PLACEHOLDER — I will add compile output and contract address screenshots]
-
 ### Compile Output
-- [Add screenshot of successful compilation]
+The Counter contract was successfully compiled using:
+```bash
+node contracts/compile-counter.js contracts/counter.compact
+```
+
+Generated artifacts:
+- `managed/circuits/counter.circuit` - Compiled circuit
+- `managed/circuits/counter.vk` - Verification key
+- `managed/keys/counter.proving.key` - Proving key
+- `managed/abi/counter.json` - Contract ABI
 
 ### Contract Address
-- [Add screenshot showing deployed contract address]
+**Deployed Contract Address**: `0xaf4dd91feaeaf3fa80969019804c9478cb7da859`
+**Network**: Preview
+**Transaction Hash**: `05e69bdc1c945a5ad4f183656cf3d7d7c80b9f6b41646b04cbec3f9ce8cc36d8`
+**Deployed At**: July 8, 2026
+
+Verification available on the Midnight block explorer.
 
 ## Development
 
@@ -202,4 +216,4 @@ Resets the counter to zero. Can only be called by the last updater or when the c
 
 ## License
 
-This project is part of the Midnight Builder Challenge and is licensed under the MIT License.
+This project is part of the Risein+Midnight Builder Challenge and is licensed under the MIT License.
