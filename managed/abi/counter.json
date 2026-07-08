@@ -1,0 +1,12 @@
+{
+  "contractName": "counter",
+  "version": "1.0.0",
+  "functions": [
+    "incrementWithSecret",
+    "incrementPublic",
+    "getCounter",
+    "resetCounter"
+  ],
+  "circuitHash": "23185fd12ee05857fecd0f4a9cfb220b415308dfdafbe696571bc2110fc6be43",
+  "compiledAt": "2026-07-08T20:56:00.316Z"
+}

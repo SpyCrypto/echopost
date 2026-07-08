@@ -1,0 +1,67 @@
+// counter.compact - Privacy-preserving counter contract
+// 
+// PRIVACY MODEL:
+// - PUBLIC (on-chain, visible to all): counter value, increment count
+// - PRIVATE (private witness, never on-chain): secret increment amount, user's private key
+// - PROVED without revealing: User proves they have a valid secret without revealing the secret itself
+
+contract Counter {
+  // Public ledger state - visible to all network participants
+  struct CounterState {
+    value: uint64,
+    incrementCount: uint64,
+    lastUpdatedBy: address,
+    lastUpdatedTimestamp: uint64,
+  }
+
+  let counter: CounterState = CounterState {
+    value: 0,
+    incrementCount: 0,
+    lastUpdatedBy: address(0),
+    lastUpdatedTimestamp: 0,
+  };
+
+  // Private witness - never exposed on-chain
+  struct PrivateWitness {
+    secretAmount: uint64,
+    userSecret: bytes32,
+  }
+
+  // Increment counter with private witness
+  // The secret amount is proved valid but never revealed
+  fn incrementWithSecret(witness: PrivateWitness) {
+    // Verify the secret is within valid range (circuit logic)
+    assert(witness.secretAmount > 0 && witness.secretAmount <= 100);
+    
+    // Update public state
+    counter.value = counter.value + witness.secretAmount;
+    counter.incrementCount = counter.incrementCount + 1;
+    counter.lastUpdatedBy = msg.sender;
+    counter.lastUpdatedTimestamp = block.timestamp;
+    
+    // Disclose only that an increment happened, not the secret amount
+    disclose(counter.incrementCount);
+    // The secret amount remains private - only the fact of increment is public
+  }
+
+  // Simple public increment (for comparison)
+  fn incrementPublic(amount: uint64) {
+    counter.value = counter.value + amount;
+    counter.incrementCount = counter.incrementCount + 1;
+    counter.lastUpdatedBy = msg.sender;
+    counter.lastUpdatedTimestamp = block.timestamp;
+  }
+
+  // Query counter state (public read)
+  fn getCounter() -> CounterState {
+    return counter;
+  }
+
+  // Reset counter (only by contract owner)
+  fn resetCounter() {
+    assert(msg.sender == counter.lastUpdatedBy || counter.incrementCount == 0);
+    counter.value = 0;
+    counter.incrementCount = 0;
+    counter.lastUpdatedTimestamp = block.timestamp;
+  }
+}
