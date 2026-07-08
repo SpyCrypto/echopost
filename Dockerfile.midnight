@@ -13,5 +13,6 @@ RUN mkdir -p /app/contracts /app/managed
 # Expose ports for proof server and development
 EXPOSE 6800 8545
 
-# Default command: bash for interactive development
-CMD ["bash"]
+# Override entrypoint to allow bash
+ENTRYPOINT ["/bin/sh"]
+CMD ["-c", "while true; do sleep 3600; done"]
