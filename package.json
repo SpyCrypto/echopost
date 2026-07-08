@@ -5,7 +5,9 @@
   "description": "EchoPost — privacy-first multi-platform publishing on Netlify",
   "type": "module",
   "scripts": {
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@netlify/database": "^1.1.0",
@@ -13,6 +15,7 @@
     "drizzle-orm": "beta"
   },
   "devDependencies": {
-    "drizzle-kit": "beta"
+    "drizzle-kit": "beta",
+    "vitest": "^2.0.0"
   }
 }
