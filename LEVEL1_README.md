@@ -1,4 +1,4 @@
-# Counter — Privacy-Preserving Smart Contract
+# Counter Privacy-Preserving Smart Contract
 
 > A privacy-preserving counter contract built on Midnight that demonstrates zero-knowledge proof capabilities with private witness inputs and selective disclosure.
 
